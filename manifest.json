@@ -13,7 +13,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content2.js", "p5.min.js"],
+      "js": ["content.js", "p5.min.js"],
       "run_at": "document_end"
     }
   ],

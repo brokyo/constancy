@@ -9,13 +9,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		// session tracking object
 		let intentionData = {
 			active: true,
+			focus: true,
 			windowId: window.id,
 			intention: request.text,
 			time: request.time,
 			start: Date.now(),
 			end: Date.now() + request.time * 60 * 1000,
 			success: false,
-			tabs: []
+			tabs: [],
+			focusLost: []
 		}
 
 		// Get all tabs in active window
@@ -74,7 +76,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 //////////////////
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	// when tab update completes the page is not the newtab placeholder
-	if (tab.status === 'complete' && tab.url !== "chrome://newtab/") {
+	if (tab.status === 'complete' && tab.url !== "chrome://*") {
 		getIntentionData().then(intentionData => {
 			// get the relevant tab
 			let tabIndex = intentionData.tabs.findIndex(savedTab => savedTab.currentId === tab.id)
@@ -113,6 +115,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 //////////////
 chrome.tabs.onCreated.addListener(tab => {
 		getIntentionData().then(intentionData => {
+			if(tab.windowId !== intentionData.windowId){return}
+
 			let tabContainer
 
 			// Get the first inactive tab
@@ -144,7 +148,7 @@ chrome.tabs.onCreated.addListener(tab => {
 						focusPeriods: []
 					}
 					newTab.history.push(webpage)
-				}
+				} 
 
 				intentionData.tabs.push(newTab)
 			}
@@ -219,7 +223,38 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
 	})
 })
 
+//////////////////
+// Focus Lost
+//
+// track when user leaves window entirely
+//////////////////
+chrome.windows.onFocusChanged.addListener(windowId => {
+	getIntentionData().then(intentionData => {
+		if (intentionData.focus && windowId !== intentionData.windowId) {
+			console.log('focus lost')
+			intentionData.focus = false
+			intentionData.focusLost.push({start: Date.now(), end: undefined})
+		} else if (!intentionData.focus && windowId === intentionData.windowId) {
+			console.log('focus returned')
+			let focusIndex = intentionData.focusLost.length - 1
+			intentionData.focus = true
+			intentionData.focusLost[focusIndex].end = Date.now()
+		}	
 
+		updateIntentionData(intentionData)
+	})
+})
+
+///////////////////
+// Data Updated
+//
+// update all content displays when underlying data changes
+///////////////////
+
+chrome.storage.onChanged.addListener((changes, area) => {
+	console.log('data changed')
+	refreshData()
+})
 
 // HELPER METHODS //
 function refreshData() {
@@ -233,7 +268,6 @@ function refreshData() {
 function getIntentionData() {
 	return new Promise((resolve, reject) => {
 			chrome.storage.local.get(['intention'], result => {
-				// console.log('get:', result.intention.tabs)
 				resolve(result.intention)
 			})		
 	})
@@ -242,7 +276,7 @@ function getIntentionData() {
 function updateIntentionData(intentionData) {
 	return new Promise((resolve, reject) => {
 		chrome.storage.local.set({'intention': intentionData}, _ => {
-			console.log('set:', intentionData.tabs)
+			console.log('set:', intentionData)
 			chrome.storage.local.get(['intention'], data => {
 				resolve(data.intention)
 			})
@@ -250,8 +284,8 @@ function updateIntentionData(intentionData) {
 	})
 }
 
-// // Refresh the browsing data every minute
-// chrome.alarms.create('refreshBrowsingData', {when: Date.now() + 1000, periodInMinutes: 1})
-// chrome.alarms.onAlarm.addListener(_ => {
-// 	refreshData()
-// })
+// Refresh the browsing data every minute
+chrome.alarms.create('refreshBrowsingData', {when: Date.now() + 1000, periodInMinutes: 1})
+chrome.alarms.onAlarm.addListener(_ => {
+	refreshData()
+})
