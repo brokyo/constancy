@@ -155,8 +155,8 @@ chrome.tabs.onCreated.addListener(tab => {
 				history: []
 			}
 
-			// create page object and push it to containers history if the first thing loaded is a web page
-			// if (tab.url !== "chrome://newtab/") {
+			// TODO: Maybe don't do this if the page is 'chrome://newtab' ?
+			// create page object and push it to container's history
 				let webpage = {
 					title: tab.title,
 					url: tab.url,
@@ -165,7 +165,6 @@ chrome.tabs.onCreated.addListener(tab => {
 					focusPeriods: []
 				}
 				newTab.history.push(webpage)
-			// }
 
 			intentionData.tabs.push(newTab)
 		}
