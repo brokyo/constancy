@@ -61,6 +61,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 			updateIntentionData(intentionData).then(response => {})
 		})
+
+		// Set ending alarm
+		createEndAlarm(intentionData.end)
 	}
 
 	// End Session	
@@ -317,9 +320,32 @@ function updateIntentionData(intentionData) {
 		chrome.storage.local.set({
 			'intention': intentionData
 		}, _ => {
-			// console.log('set:', intentionData)
+			console.log('set:', intentionData)
 			chrome.storage.local.get(['intention'], data => {
 				resolve(data.intention)
+			})
+		})
+	})
+}
+
+function createEndAlarm(endTime) {
+	chrome.alarms.create('endSession', {
+		when: endTime
+	})
+}
+
+function endSession() {
+	getIntentionData().then(data => {
+		data.active = false
+		updateIntentionData(data)
+
+		chrome.tabs.query({}, tabs => {
+			tabs.forEach(tab => {
+				if(tab.windowId === data.windowId) {
+					chrome.tabs.sendMessage(tab.id, {
+						control: "endSession"
+					}, async response => {})			
+				}
 			})
 		})
 	})
@@ -330,9 +356,19 @@ chrome.alarms.create('refreshBrowsingData', {
 	when: Date.now() + 1000,
 	periodInMinutes: 1
 })
-chrome.alarms.onAlarm.addListener(_ => {
-	getIntentionData().then(data => {
-		let activeWindow = data.windowId
-		intervalRefresh(activeWindow)
-	})
+
+chrome.alarms.onAlarm.addListener(alarm => {
+	switch (alarm.name) {
+		case 'refreshBrowsingData':
+		getIntentionData().then(data => {
+			let activeWindow = data.windowId
+			intervalRefresh(activeWindow)
+		})
+		break
+
+		case 'endSession':
+		endSession()
+		break
+	}
+
 })

@@ -235,7 +235,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // check if extension is active and kickoff
 updateIntentionData().then(_ => {
-	if(globalStorage.active = true) {
+	console.log(globalStorage.active)
+	if(globalStorage.active) {
 		startExtension()
 	}
 })
