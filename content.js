@@ -14,6 +14,7 @@ page.style.paddingBottom = "65px"
 
 intention.style.position = 'fixed'
 intention.style.bottom = "0"
+intention.style.left = "0"
 intention.style.width = '100%'
 intention.style.height = '105px'
 intention.style.padding = '0'
@@ -43,13 +44,14 @@ function addEventListeners() {
 			case 'updateData':
 				updateData(request.data)
 				break
-			case 'refreshData':
-				updateContent()
+			case 'intervalRefresh':
+				intervalRefresh()
 				break
 			case 'endSession':
 				endExtension()
 				break
 		}
+		return true
 	})
 }
 
@@ -138,7 +140,7 @@ function startP5() {
 							var w = p5.map(periodEndTime, intentionStart, intentionEnd, 0, canvasWidth) - x
 							var h = periodHeight
 
-							// console.log('tab:', tabIndex, 'site:', siteIndex, 'period:', periodIndex, 'y:', y, 'x:', x, 'w:', w)
+							console.log('tab:', tabIndex, 'site:', siteIndex, 'period:', periodIndex, 'y:', y, 'x:', x, 'w:', w)
 							p5.stroke('#A42020')
 							p5.fill('#A42020')
 							p5.rect(x, y, w, h, 20)
@@ -221,7 +223,7 @@ function endExtension() {
 }
 
 // update dom with new browsing data
-function updateContent() {
+function intervalRefresh() {
 	globalP5.redraw()
 }
 

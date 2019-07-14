@@ -21,12 +21,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		}
 
 		// Get all tabs in active window
-		chrome.tabs.query({currentWindow: true}, tabs => {
+		chrome.tabs.query({
+			currentWindow: true
+		}, tabs => {
 			intentionData.windowId = tabs[0].windowId
 
 			tabs.forEach(tab => {
 				// activate content.js in relevant tabs
-				chrome.tabs.sendMessage(tab.id, {control: "startSession"}, function(response) {})
+				chrome.tabs.sendMessage(tab.id, {
+					control: "startSession"
+				}, async response => {})
 
 				let newTab = {
 					available: false,
@@ -50,7 +54,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 			// Set the current window as active
 			intentionData.tabs[0].focus = true
-			intentionData.tabs[0].history[0].focusPeriods.push({start: Date.now(), end: undefined})
+			intentionData.tabs[0].history[0].focusPeriods.push({
+				start: Date.now(),
+				end: undefined
+			})
 
 			updateIntentionData(intentionData).then(response => {})
 		})
@@ -60,11 +67,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.control === 'endSession') {
 		console.log('background - end session')
 
-		chrome.tabs.query({}, function(tabs){
+		chrome.tabs.query({}, function(tabs) {
 			tabs.forEach(tab => {
 				console.log('end session on tab', tab.id)
-				chrome.tabs.sendMessage(tab.id, {control: "endSession"}, function(response) {})
-			})  
+				chrome.tabs.sendMessage(tab.id, {
+					control: "endSession"
+				}, async response => {})
+			})
 		});
 	}
 });
@@ -76,8 +85,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 //////////////////
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 	// when tab update completes the page is not the newtab placeholder
-	if (tab.status === 'complete' && tab.url !== "chrome://*") {
+	if (tab.status === 'complete') {
 		getIntentionData().then(intentionData => {
+			if (tab.windowId !== intentionData.windowId) {
+				return
+			}
 			// get the relevant tab
 			let tabIndex = intentionData.tabs.findIndex(savedTab => savedTab.currentId === tab.id)
 
@@ -86,7 +98,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 			if (previousPageIndex > -1) {
 				intentionData.tabs[tabIndex].history[previousPageIndex].end = Date.now()
 				let previousSessionIndex = intentionData.tabs[tabIndex].history[previousPageIndex].focusPeriods.length - 1
-				intentionData.tabs[tabIndex].history[previousPageIndex].focusPeriods[previousSessionIndex].end = Date.now()				
+				intentionData.tabs[tabIndex].history[previousPageIndex].focusPeriods[previousSessionIndex].end = Date.now()
 			}
 
 			// create an object for the new page
@@ -99,7 +111,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 			}
 
 			// begin a focus period on it
-			webpage.focusPeriods.push({start: Date.now(), end: undefined})
+			webpage.focusPeriods.push({
+				start: Date.now(),
+				end: undefined
+			})
 			intentionData.tabs[tabIndex].history.push(webpage)
 
 			updateIntentionData(intentionData)
@@ -114,47 +129,49 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 // when a new tab is created assoicate it with existing tab container or create a new one
 //////////////
 chrome.tabs.onCreated.addListener(tab => {
-		getIntentionData().then(intentionData => {
-			if(tab.windowId !== intentionData.windowId){return}
+	getIntentionData().then(intentionData => {
+		if (tab.windowId !== intentionData.windowId) {
+			return
+		}
 
-			let tabContainer
+		let tabContainer
 
-			// Get the first inactive tab
-			var availableTabIndex = intentionData.tabs.findIndex(tab => tab.available === true)
+		// Get the first inactive tab
+		var availableTabIndex = intentionData.tabs.findIndex(tab => tab.available === true)
 
-			// if there's an inactive container update it with new metadata 
-			if (availableTabIndex > -1) {
-				tabContainer = intentionData.tabs[availableTabIndex]
-				tabContainer.available = false
-				tabContainer.currentId = tab.id
+		// if there's an inactive container update it with new metadata 
+		if (availableTabIndex > -1) {
+			tabContainer = intentionData.tabs[availableTabIndex]
+			tabContainer.available = false
+			tabContainer.currentId = tab.id
 
 			// if all tab containers are in use create a new one
-			} else {
-				// Create new tab object
-				let newTab = {
-					available: false,
-					focus: false,
-					currentId: tab.id,
-					history: []
-				}
-
-	 			if (tab.url !== "chrome://newtab/") {
-					// create page object and push it to containers history
-					let webpage = {
-						title: tab.title,
-						url: tab.url,
-						start: Date.now(),
-						end: undefined,
-						focusPeriods: []
-					}
-					newTab.history.push(webpage)
-				} 
-
-				intentionData.tabs.push(newTab)
+		} else {
+			// Create new tab object
+			let newTab = {
+				available: false,
+				focus: false,
+				currentId: tab.id,
+				history: []
 			}
 
-			updateIntentionData(intentionData)
-		})
+			// create page object and push it to containers history if the first thing loaded is a web page
+			// if (tab.url !== "chrome://newtab/") {
+				let webpage = {
+					title: tab.title,
+					url: tab.url,
+					start: Date.now(),
+					end: undefined,
+					focusPeriods: []
+				}
+				newTab.history.push(webpage)
+			// }
+
+			intentionData.tabs.push(newTab)
+		}
+
+		updateIntentionData(intentionData)
+	})
 })
 
 /////////////////
@@ -162,40 +179,45 @@ chrome.tabs.onCreated.addListener(tab => {
 //
 // on tab change event end the previous active period and begin a new one
 ////////////////
-// TODO: This is a nutso approach to manipulating data
+
+// TODO: Need to revisit this whole thing. Bunch of hacks stacked on top of one another
 chrome.tabs.onActivated.addListener(newFocusTab => {
-	// get information about the new active tab
-	chrome.tabs.get(newFocusTab.tabId, tab => {
-		// TODO: setting timeout as a garbage hack to deal with race condition
-		// data write at the end of onCreated does not complete before data read in onActivated meaning old data gets overwritten  
+	getIntentionData().then(intentionData => {
+		if (newFocusTab.windowId !== intentionData.windowId) {
+			return
+		}
+		// get information about the new active tab. Use timeout because of a race condition?
 		setTimeout(function() {
-			getIntentionData().then(intention =>{
+			chrome.tabs.get(newFocusTab.tabId, tab => {
 				// set the old tab as inactive
-				let previousTabIndex = intention.tabs.findIndex(tab => tab.focus === true)
+				let previousTabIndex = intentionData.tabs.findIndex(tab => tab.focus === true)
 				// assuming there is a previous active tab
 				if (previousTabIndex > -1) {
-					intention.tabs[previousTabIndex].focus = false
+					intentionData.tabs[previousTabIndex].focus = false
 
 					// and end previous active period
-					let previousFocusPageIndex = intention.tabs[previousTabIndex].history.length - 1
-					if(previousFocusPageIndex > -1) {
-						let previousFocusPeriodIndex = intention.tabs[previousTabIndex].history[previousFocusPageIndex].focusPeriods.length - 1
-						intention.tabs[previousTabIndex].history[previousFocusPageIndex].focusPeriods[previousFocusPeriodIndex].end = Date.now()
+					let previousFocusPageIndex = intentionData.tabs[previousTabIndex].history.length - 1
+					if (previousFocusPageIndex > -1) {
+						let previousFocusPeriodIndex = intentionData.tabs[previousTabIndex].history[previousFocusPageIndex].focusPeriods.length - 1
+						intentionData.tabs[previousTabIndex].history[previousFocusPageIndex].focusPeriods[previousFocusPeriodIndex].end = Date.now()
 					}
 				}
 
 				// set new tab as active
-				let focusTabIndex = intention.tabs.findIndex(tab => tab.currentId === newFocusTab.tabId)
-				intention.tabs[focusTabIndex].focus = true
+				let focusTabIndex = intentionData.tabs.findIndex(tab => tab.currentId === newFocusTab.tabId)
+				console.log(focusTabIndex)
+				intentionData.tabs[focusTabIndex].focus = true
 
 				// and start new active session
-				let focusPageIndex = intention.tabs[focusTabIndex].history.length - 1
+				let focusPageIndex = intentionData.tabs[focusTabIndex].history.length - 1
 				if (focusPageIndex > -1) {
-					intention.tabs[focusTabIndex].history[focusPageIndex].focusPeriods.push({start: Date.now(), end: undefined})
+					intentionData.tabs[focusTabIndex].history[focusPageIndex].focusPeriods.push({
+						start: Date.now(),
+						end: undefined
+					})
 				}
 
-				updateIntentionData(intention).then(response => {
-				})
+				updateIntentionData(intentionData).then(response => {})
 			})
 		}, 50)
 	})
@@ -232,12 +254,15 @@ chrome.windows.onFocusChanged.addListener(windowId => {
 	getIntentionData().then(intentionData => {
 		if (intentionData.focus && windowId !== intentionData.windowId) {
 			intentionData.focus = false
-			intentionData.focusLost.push({start: Date.now(), end: undefined})
+			intentionData.focusLost.push({
+				start: Date.now(),
+				end: undefined
+			})
 		} else if (!intentionData.focus && windowId === intentionData.windowId) {
 			let focusIndex = intentionData.focusLost.length - 1
 			intentionData.focus = true
 			intentionData.focusLost[focusIndex].end = Date.now()
-		}	
+		}
 
 		updateIntentionData(intentionData)
 	})
@@ -251,37 +276,49 @@ chrome.windows.onFocusChanged.addListener(windowId => {
 chrome.storage.onChanged.addListener((changes, area) => {
 	let newData = changes.intention.newValue
 
-	chrome.tabs.query({active: true}, function(tabs){
+	chrome.tabs.query({
+		active: true
+	}, function(tabs) {
 		tabs.forEach(tab => {
 			let activeWindow = newData.windowId
-			if(tab.windowId === activeWindow) {
-				console.log(newData)
-				chrome.tabs.sendMessage(tab.id, {control: "updateData", data: newData}, response => {})				
+			if (tab.windowId === activeWindow) {
+				chrome.tabs.sendMessage(tab.id, {
+					control: "updateData",
+					data: newData
+				}, async response => {})
 			}
 		})
 	})
 })
 
 // HELPER METHODS //
-function refreshData() {
-	chrome.tabs.query({}, function(tabs){
+function intervalRefresh(activeWindow) {
+	chrome.tabs.query({
+		active: true
+	}, function(tabs) {
 		tabs.forEach(tab => {
-			chrome.tabs.sendMessage(tab.id, {control: "refreshData"}, function(response) {})
-		})  
+			if (tab.windowId === activeWindow) {
+				chrome.tabs.sendMessage(tab.id, {
+					control: "intervalRefresh"
+				}, async response => {})
+			}
+		})
 	});
 }
 
 function getIntentionData() {
 	return new Promise((resolve, reject) => {
-			chrome.storage.local.get(['intention'], result => {
-				resolve(result.intention)
-			})		
+		chrome.storage.local.get(['intention'], result => {
+			resolve(result.intention)
+		})
 	})
 }
 
 function updateIntentionData(intentionData) {
 	return new Promise((resolve, reject) => {
-		chrome.storage.local.set({'intention': intentionData}, _ => {
+		chrome.storage.local.set({
+			'intention': intentionData
+		}, _ => {
 			// console.log('set:', intentionData)
 			chrome.storage.local.get(['intention'], data => {
 				resolve(data.intention)
@@ -291,7 +328,13 @@ function updateIntentionData(intentionData) {
 }
 
 // Refresh the browsing data every minute
-chrome.alarms.create('refreshBrowsingData', {when: Date.now() + 1000, periodInMinutes: 1})
+chrome.alarms.create('refreshBrowsingData', {
+	when: Date.now() + 1000,
+	periodInMinutes: 1
+})
 chrome.alarms.onAlarm.addListener(_ => {
-	refreshData()
+	getIntentionData().then(data => {
+		let activeWindow = data.windowId
+		intervalRefresh(activeWindow)
+	})
 })
