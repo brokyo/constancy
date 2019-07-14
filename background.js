@@ -231,11 +231,9 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
 chrome.windows.onFocusChanged.addListener(windowId => {
 	getIntentionData().then(intentionData => {
 		if (intentionData.focus && windowId !== intentionData.windowId) {
-			console.log('focus lost')
 			intentionData.focus = false
 			intentionData.focusLost.push({start: Date.now(), end: undefined})
 		} else if (!intentionData.focus && windowId === intentionData.windowId) {
-			console.log('focus returned')
 			let focusIndex = intentionData.focusLost.length - 1
 			intentionData.focus = true
 			intentionData.focusLost[focusIndex].end = Date.now()
@@ -248,12 +246,20 @@ chrome.windows.onFocusChanged.addListener(windowId => {
 ///////////////////
 // Data Updated
 //
-// update all content displays when underlying data changes
+// update active content display when underlying data changes
 ///////////////////
-
 chrome.storage.onChanged.addListener((changes, area) => {
-	console.log('data changed')
-	refreshData()
+	let newData = changes.intention.newValue
+
+	chrome.tabs.query({active: true}, function(tabs){
+		tabs.forEach(tab => {
+			let activeWindow = newData.windowId
+			if(tab.windowId === activeWindow) {
+				console.log(newData)
+				chrome.tabs.sendMessage(tab.id, {control: "updateData", data: newData}, response => {})				
+			}
+		})
+	})
 })
 
 // HELPER METHODS //
@@ -276,7 +282,7 @@ function getIntentionData() {
 function updateIntentionData(intentionData) {
 	return new Promise((resolve, reject) => {
 		chrome.storage.local.set({'intention': intentionData}, _ => {
-			console.log('set:', intentionData)
+			// console.log('set:', intentionData)
 			chrome.storage.local.get(['intention'], data => {
 				resolve(data.intention)
 			})

@@ -40,6 +40,9 @@ function addBar() {
 function addEventListeners() {
 	chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		switch (request.control) {
+			case 'updateData':
+				updateData(request.data)
+				break
 			case 'refreshData':
 				updateContent()
 				break
@@ -182,6 +185,17 @@ function startP5() {
 function stopP5() {
 
 }
+
+function updateP5() {
+	globalP5.redraw()
+}
+
+
+function updateData(newData) {
+	globalStorage = newData
+	updateP5()
+}
+
 
 // TODO: is this the best way to do this?
 // get from chrome extension storage then update global store
