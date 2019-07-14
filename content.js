@@ -140,7 +140,7 @@ function startP5() {
 							var w = p5.map(periodEndTime, intentionStart, intentionEnd, 0, canvasWidth) - x
 							var h = periodHeight
 
-							console.log('tab:', tabIndex, 'site:', siteIndex, 'period:', periodIndex, 'y:', y, 'x:', x, 'w:', w)
+							// console.log('tab:', tabIndex, 'site:', siteIndex, 'period:', periodIndex, 'y:', y, 'x:', x, 'w:', w)
 							p5.stroke('#A42020')
 							p5.fill('#A42020')
 							p5.rect(x, y, w, h, 20)
@@ -174,11 +174,9 @@ function startP5() {
 			})
 		}
 
-		// p5.refreshData = function() {
-		// 	updateIntentionData().then(_ => {
-		// 		p5.redraw()
-		// 	})
-		// }
+		p5.windowResized = function() {
+			p5.resizeCanvas(window.innerWidth, 50)
+		}
 	}
 
 	globalP5 = new p5(sketch)

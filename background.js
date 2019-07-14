@@ -204,7 +204,6 @@ chrome.tabs.onActivated.addListener(newFocusTab => {
 
 				// set new tab as active
 				let focusTabIndex = intentionData.tabs.findIndex(tab => tab.currentId === newFocusTab.tabId)
-				console.log(focusTabIndex)
 				intentionData.tabs[focusTabIndex].focus = true
 
 				// and start new active session
