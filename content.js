@@ -203,6 +203,7 @@ function updateIntentionData() {
 	return new Promise((resolve, reject) => {
 			chrome.storage.local.get(['intention'], result => {
 				globalStorage = result.intention
+				console.log(globalStorage)
 				resolve()
 			})		
 	})
@@ -210,6 +211,7 @@ function updateIntentionData() {
 
 // Extension kickoff
 function startExtension() {
+		console.log('start')
 		addBar()
 		addEventListeners()
 		startP5()
@@ -235,7 +237,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // check if extension is active and kickoff
 updateIntentionData().then(_ => {
-	console.log(globalStorage.active)
 	if(globalStorage.active) {
 		startExtension()
 	}

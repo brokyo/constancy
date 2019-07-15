@@ -1,3 +1,21 @@
+function attachListeners() {
+	chrome.tabs.onUpdated.addListener(pageUpdated)
+	chrome.tabs.onCreated.addListener(newTab)
+	chrome.tabs.onActivated.addListener(tabChange)
+	chrome.tabs.onRemoved.addListener(closeTab)
+	chrome.windows.onFocusChanged.addListener(focusChange)
+	chrome.storage.onChanged.addListener(dataUpdated)
+}
+
+function removeListeners() {
+	chrome.tabs.onUpdated.removeListener(pageUpdated)	
+	chrome.tabs.onCreated.removeListener(newTab)
+	chrome.tabs.onActivated.removeListener(tabChange)
+	chrome.tabs.onRemoved.removeListener(closeTab)
+	chrome.windows.onFocusChanged.removeListener(focusChange)
+	chrome.storage.onChanged.removeListener(dataUpdated)
+}
+
 // Message handling
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	////////////////////
@@ -6,6 +24,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// after receiving startSession message create base data model and setup listeners
 	////////////////////
 	if (request.control === 'startSession') {
+		attachListeners()
 		// session tracking object
 		let intentionData = {
 			active: true,
@@ -68,16 +87,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	// End Session	
 	if (request.control === 'endSession') {
-		console.log('background - end session')
-
-		chrome.tabs.query({}, function(tabs) {
-			tabs.forEach(tab => {
-				console.log('end session on tab', tab.id)
-				chrome.tabs.sendMessage(tab.id, {
-					control: "endSession"
-				}, async response => {})
-			})
-		});
+		endSession()
+		// chrome.tabs.query({}, function(tabs) {
+		// 	tabs.forEach(tab => {
+		// 		console.log('end session on tab', tab.id)
+		// 		chrome.tabs.sendMessage(tab.id, {
+		// 			control: "endSession"
+		// 		}, async response => {})
+		// 	})
+		// });
 	}
 });
 
@@ -86,7 +104,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 //
 // after a page change is complete end previous page session and create a new one
 //////////////////
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+function pageUpdated(tabId, changeInfo, tab) {
 	// when tab update completes the page is not the newtab placeholder
 	if (tab.status === 'complete') {
 		getIntentionData().then(intentionData => {
@@ -123,15 +141,14 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 			updateIntentionData(intentionData)
 		})
 	}
-})
-
+}
 
 //////////////
 // New Tab
 //
 // when a new tab is created assoicate it with existing tab container or create a new one
 //////////////
-chrome.tabs.onCreated.addListener(tab => {
+function newTab(tab) {
 	getIntentionData().then(intentionData => {
 		if (tab.windowId !== intentionData.windowId) {
 			return
@@ -174,16 +191,15 @@ chrome.tabs.onCreated.addListener(tab => {
 
 		updateIntentionData(intentionData)
 	})
-})
+}
 
 /////////////////
 // Change Tab 
 //
 // on tab change event end the previous active period and begin a new one
 ////////////////
-
 // TODO: Need to revisit this whole thing. Bunch of hacks stacked on top of one another
-chrome.tabs.onActivated.addListener(newFocusTab => {
+function tabChange(newFocusTab) {
 	getIntentionData().then(intentionData => {
 		if (newFocusTab.windowId !== intentionData.windowId) {
 			return
@@ -222,15 +238,15 @@ chrome.tabs.onActivated.addListener(newFocusTab => {
 			})
 		}, 50)
 	})
-})
+}
+
 
 //////////////////
 // Close Tab
 //
 // on tab close set associated tab container as inactive
 //////////////////
-chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
-
+function closeTab(tabId, removeInfo) {
 	getIntentionData().then(intentionData => {
 		if (removeInfo.windowId === intentionData.windowId) {
 			let removedTabIndex = intentionData.tabs.findIndex(tab => tab.currentId === tabId)
@@ -242,17 +258,17 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
 		updateIntentionData(intentionData).then(response => {
 
 		})
-
 	})
-})
+}
+
 
 //////////////////
 // Focus Lost
 //
 // track when user leaves window entirely
 //////////////////
-chrome.windows.onFocusChanged.addListener(windowId => {
-	getIntentionData().then(intentionData => {
+function focusChange(windowId) {
+		getIntentionData().then(intentionData => {
 		if (intentionData.focus && windowId !== intentionData.windowId) {
 			intentionData.focus = false
 			intentionData.focusLost.push({
@@ -267,14 +283,15 @@ chrome.windows.onFocusChanged.addListener(windowId => {
 
 		updateIntentionData(intentionData)
 	})
-})
+}
+
 
 ///////////////////
 // Data Updated
 //
 // update active content display when underlying data changes
 ///////////////////
-chrome.storage.onChanged.addListener((changes, area) => {
+function dataUpdated(changes, area) {
 	let newData = changes.intention.newValue
 
 	chrome.tabs.query({
@@ -290,7 +307,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
 			}
 		})
 	})
-})
+}
+
 
 // HELPER METHODS //
 function intervalRefresh(activeWindow) {
@@ -320,7 +338,7 @@ function updateIntentionData(intentionData) {
 		chrome.storage.local.set({
 			'intention': intentionData
 		}, _ => {
-			console.log('set:', intentionData)
+			// console.log('set:', intentionData)
 			chrome.storage.local.get(['intention'], data => {
 				resolve(data.intention)
 			})
