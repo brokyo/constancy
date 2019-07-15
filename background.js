@@ -105,31 +105,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // after a page change is complete end previous page session and create a new one
 //////////////////
 function pageUpdated(tabId, changeInfo, tab) {
-	// when tab update completes the page is not the newtab placeholder
+
 	if (tab.status === 'complete') {
 		getIntentionData().then(intentionData => {
-			if (tab.windowId !== intentionData.windowId) {
-				return
-			}
-			// get the relevant tab
-			let tabIndex = intentionData.tabs.findIndex(savedTab => savedTab.currentId === tab.id)
 
-			// end the previous focus session
+			// Ignore if it's not in an active window
+			if (tab.windowId !== intentionData.windowId) {return}
+
+			// get the indicies of the relevant tab and 
+			let tabIndex = intentionData.tabs.findIndex(savedTab => savedTab.currentId === tab.id)
 			let previousPageIndex = intentionData.tabs[tabIndex].history.length - 1
-			if (previousPageIndex > -1) {
+
+			// check that there is a previous page
+			let previousPageExists = previousPageIndex > -1 ? true : false
+			if (previousPageExists) {
+				// make sure that the page's url isn't the same [infinite scroll, refreshes, ads]
+				if (intentionData.tabs[tabIndex].history[previousPageIndex].url === tab.url) {return}
+
+				// end the previous focus session
 				intentionData.tabs[tabIndex].history[previousPageIndex].end = Date.now()
 				let previousSessionIndex = intentionData.tabs[tabIndex].history[previousPageIndex].focusPeriods.length - 1
 				intentionData.tabs[tabIndex].history[previousPageIndex].focusPeriods[previousSessionIndex].end = Date.now()
 			}
 
 			// create an object for the new page
-			let webpage = {
-				title: tab.title,
-				url: tab.url,
-				start: Date.now(),
-				end: undefined,
-				focusPeriods: []
-			}
+			let webpage = createWebPageObject(tab)
 
 			// begin a focus period on it
 			webpage.focusPeriods.push({
@@ -311,6 +311,16 @@ function dataUpdated(changes, area) {
 
 
 // HELPER METHODS //
+function createWebPageObject(tab) {
+	return {
+		title: tab.title,
+		url: tab.url,
+		start: Date.now(),
+		end: undefined,
+		focusPeriods: []
+	}
+}
+
 function intervalRefresh(activeWindow) {
 	chrome.tabs.query({
 		active: true

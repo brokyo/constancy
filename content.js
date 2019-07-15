@@ -22,7 +22,7 @@ intention.style.margin = '0'
 intention.style.borderRadius = '0'
 intention.style.backgroundColor = '#FFFFFF'
 intention.style["z-index"] = "9999999999"
-
+intention.style.webkitBoxShadow = '0px -2px 7px -2px rgba(0,0,0,0.38)'
 statement.style["font-size"] = "12px"
 
 // global p5 object | allows other methods to run p5 operations
@@ -203,7 +203,6 @@ function updateIntentionData() {
 	return new Promise((resolve, reject) => {
 			chrome.storage.local.get(['intention'], result => {
 				globalStorage = result.intention
-				console.log(globalStorage)
 				resolve()
 			})		
 	})
