@@ -5,9 +5,30 @@ var body = document.getElementsByTagName('body')[0]
 var statement = document.createElement('span')
 statement.setAttribute("id", "statement")
 
+var canvasNode = document.createElement('div')
+canvasNode.setAttribute("id", "canvasNode")
+
 var intention = document.createElement('div')
 intention.setAttribute("id", "intention")
 intention.append(statement)
+intention.append(canvasNode)
+
+// Create hide button
+var hide = document.createElement('span')
+hide.setAttribute("id", "hide")
+hideText = '--'
+hideTextNode = document.createTextNode(hideText)
+hide.append(hideTextNode)
+intention.append(hide)
+
+var show = document.createElement('show')
+show.setAttribute("id", "show")
+showText = '+'
+showTextNode = document.createTextNode(showText)
+show.append(showTextNode)
+intention.append(show)
+
+
 
 // style core elements
 page.style.paddingBottom = "65px"
@@ -21,8 +42,31 @@ intention.style.margin = '0'
 intention.style.borderRadius = '0'
 intention.style.backgroundColor = '#FFFFFF'
 intention.style["z-index"] = "9999999999"
+intention.style["text-align"] = "center"
 intention.style.webkitBoxShadow = '0px -2px 7px -2px rgba(0,0,0,0.38)'
-statement.style["font-size"] = "12px"
+
+statement.style["font-size"] = "16px"
+statement.style["font-family"] = "inherit"
+statement.style.display = "block"
+statement.style.padding = "5px 0px"
+
+hide.style.display = "block"
+hide.style.position = "absolute"
+hide.style.top = "-1px"
+hide.style.right = "7px"
+hide.style["font-size"] = "16px"
+hide.style["font-weight"] = "900"
+hide.style.cursor = "pointer"
+
+show.style.display = 'none'
+show.style.position = "absolute"
+show.style.top = "-1px"
+show.style.right = "7px"
+show.style["font-size"] = "16px"
+show.style["font-weight"] = "900"
+show.style.cursor = "pointer"
+
+canvasNode.style.padding = "0px 0px 6px 0px"
 
 // global p5 object | allows other methods to run p5 operations
 var globalP5, globalStorage
@@ -33,7 +77,10 @@ function addBar() {
 	statementTextNode = document.createTextNode(statementText)
 	statement.append(statementTextNode)
 
+	// Handle DOM stuff
 	body.append(intention)
+	document.getElementById('hide').addEventListener("click", hideChart)
+	document.getElementById('show').addEventListener("click", showChart)
 }
 
 // Set up Chrome background.js message listeners
@@ -66,8 +113,7 @@ function startP5() {
 
 		p5.setup = function() {
 			var canvas = p5.createCanvas(window.innerWidth, globalStorage.tabs.length * 10)
-			var intentionNode = document.getElementById('intention')
-			canvas.parent(intentionNode)
+			canvas.parent(canvasNode)
 			
 			p5.noLoop()
 		}
@@ -94,17 +140,6 @@ function startP5() {
 					} else {
 						siteEndTime = site.end
 					}
-
-					// calculate height of each tab
-					// if (globalStorage.tabs.length < 5) {
-					// tabHeight = canvasHeight / globalStorage.tabs.length
-					// tabHeight = 10
-					// } else {
-					// 	height = globalStorage.tabs.length * 10
-					// 	tabHeight = 10
-						// p5.resizeCanvas(window.innerWidth, height)
-					// }
-
 
 					// draw visit history
 					let siteHeight = tabHeight * 0.7
@@ -212,7 +247,6 @@ function updateIntentionData() {
 
 // Extension kickoff
 function startExtension() {
-		console.log('start')
 		addBar()
 		addEventListeners()
 		startP5()
@@ -226,6 +260,20 @@ function endExtension() {
 // update dom with new browsing data
 function intervalRefresh() {
 	globalP5.redraw()
+}
+
+function hideChart() {
+	console.log('hide')
+	canvasNode.style.display = 'none'
+	hide.style.display = 'none'
+	show.style.display = 'block'
+}
+
+function showChart() {
+	console.log('show')
+	canvasNode.style.display = 'block'
+	hide.style.display = 'block'
+	show.style.display = 'none'
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
