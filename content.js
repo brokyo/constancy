@@ -16,7 +16,6 @@ intention.style.position = 'fixed'
 intention.style.bottom = "0"
 intention.style.left = "0"
 intention.style.width = '100%'
-intention.style.height = '105px'
 intention.style.padding = '0'
 intention.style.margin = '0'
 intention.style.borderRadius = '0'
@@ -66,7 +65,7 @@ function startP5() {
 	var sketch = function(p5) {
 
 		p5.setup = function() {
-			var canvas = p5.createCanvas(window.innerWidth, 50)
+			var canvas = p5.createCanvas(window.innerWidth, globalStorage.tabs.length * 10)
 			var intentionNode = document.getElementById('intention')
 			canvas.parent(intentionNode)
 			
@@ -77,9 +76,10 @@ function startP5() {
 			p5.background(255)
 
 			// shared Values
+			var tabHeight = 10
 			var intentionStart = globalStorage.start
 			var intentionEnd = globalStorage.end
-			var canvasHeight = 50
+			var canvasHeight = globalStorage.tabs.length * tabHeight
 			var canvasWidth = window.innerWidth
 			var tabHeight
 
@@ -97,7 +97,8 @@ function startP5() {
 
 					// calculate height of each tab
 					// if (globalStorage.tabs.length < 5) {
-					tabHeight = canvasHeight / globalStorage.tabs.length
+					// tabHeight = canvasHeight / globalStorage.tabs.length
+					// tabHeight = 10
 					// } else {
 					// 	height = globalStorage.tabs.length * 10
 					// 	tabHeight = 10
@@ -110,7 +111,7 @@ function startP5() {
 					let tabBuffer = tabHeight * 0.15
 
 					var x = p5.map(site.start, intentionStart, intentionEnd, 0, canvasWidth)
-					var y = 50 - (tabHeight * (tabIndex + 1)) + tabBuffer
+					var y = canvasHeight - (tabHeight * (tabIndex + 1)) + tabBuffer
 					var w = p5.map(siteEndTime, intentionStart, intentionEnd, 0, canvasWidth) - x
 					var h = siteHeight
 
@@ -136,7 +137,7 @@ function startP5() {
 							let periodBuffer = tabHeight * 0.15
 
 							var x = p5.map(period.start, intentionStart, intentionEnd, 0, canvasWidth)
-							var y = 50 - (tabHeight * (tabIndex + 1)) + periodBuffer
+							var y = canvasHeight - (tabHeight * (tabIndex + 1)) + periodBuffer
 							var w = p5.map(periodEndTime, intentionStart, intentionEnd, 0, canvasWidth) - x
 							var h = periodHeight
 
@@ -164,7 +165,7 @@ function startP5() {
 				var x = p5.map(period.start, intentionStart, intentionEnd, 0, canvasWidth)
 				var y = 0
 				var w = p5.map(periodEndTime, intentionStart, intentionEnd, 0, canvasWidth) - x
-				var h = 50
+				var h = canvasHeight
 
 				// console.log('lost focus period:', periodIndex, 'w:', w, 'h:', h)
 				let focusColor = 'rgba(30, 30, 30, 0.6)' 
@@ -175,7 +176,8 @@ function startP5() {
 		}
 
 		p5.windowResized = function() {
-			p5.resizeCanvas(window.innerWidth, 50)
+			let tabHeight = 10
+			p5.resizeCanvas(window.innerWidth, globalStorage.tabs.length * tabHeight)
 		}
 	}
 
