@@ -4,9 +4,8 @@ var endContainer = document.getElementById('end')
 
 
 function checkState() {
-	console.log('hey!')
 	chrome.storage.local.get(['intention'], result => {
-		console.log(result.intention)
+
 		if (result.intention.active) {
 			reflectContainer.style.display = 'none'
 			startContainer.style.display = 'none'
@@ -23,8 +22,7 @@ function startSession(event){
 	let intentionTime = document.getElementById('intention-time').value
 
 	chrome.runtime.sendMessage({control: 'startSession', text: intentionText, time: intentionTime}, response => {
-			console.log(response)
-			// window.close()
+			window.close()
 	});
 }
 

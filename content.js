@@ -74,7 +74,7 @@ var globalP5, globalStorage
 // Attach bar to DOM
 function addBar() {
 	statementText = globalStorage.intention
-	statementTextNode = document.createTextNode(statementText)
+	statementTextNode = document.createTextNode('I intend to ' + statementText)
 	statement.append(statementTextNode)
 
 	// Handle DOM stuff
@@ -144,7 +144,7 @@ function startP5() {
 					var w = p5.map(siteEndTime, intentionStart, intentionEnd, canvasBuffer, canvasWidth - canvasBuffer) - x
 					var h = siteHeight
 
-					p5.stroke('#cccccc')
+					p5.stroke('#3227A5')
 					p5.fill('white')
 					// console.log('tab:', tabIndex, 'site:', siteIndex, 'y:', y, 'x:', x, 'w:', w, 'h:', h)
 					p5.rect(x, y, w, h, 20)
@@ -171,8 +171,8 @@ function startP5() {
 							var h = periodHeight
 
 							// console.log('tab:', tabIndex, 'site:', siteIndex, 'period:', periodIndex, 'y:', y, 'x:', x, 'w:', w)
-							p5.stroke('#A42020')
-							p5.fill('#A42020')
+							p5.stroke('#BDB8EC')
+							p5.fill('#BDB8EC')
 							p5.rect(x, y, w, h, 20)
 
 						})
@@ -198,7 +198,7 @@ function startP5() {
 				var h = canvasHeight
 
 				// console.log('lost focus period:', periodIndex, 'w:', w, 'h:', h)
-				let focusColor = 'rgba(30, 30, 30, 0.2)' 
+				let focusColor = 'rgba(30, 30, 30, 0.3)' 
 				p5.stroke(focusColor)
 				p5.fill(focusColor)
 				p5.rect(x, y, w, h)
