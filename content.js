@@ -101,11 +101,6 @@ function addEventListeners() {
 	})
 }
 
-// Browser stuff teardown
-function removeBar() {
-
-}
-
 // P5 kickoff
 function startP5() {
 
@@ -219,10 +214,6 @@ function startP5() {
 	globalP5 = new p5(sketch)
 }
 
-function stopP5() {
-
-}
-
 function updateP5() {
 	globalP5.redraw()
 }
@@ -263,14 +254,12 @@ function intervalRefresh() {
 }
 
 function hideChart() {
-	console.log('hide')
 	canvasNode.style.display = 'none'
 	hide.style.display = 'none'
 	show.style.display = 'block'
 }
 
 function showChart() {
-	console.log('show')
 	canvasNode.style.display = 'block'
 	hide.style.display = 'block'
 	show.style.display = 'none'
