@@ -105,6 +105,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // after a page change is complete end previous page session and create a new one
 //////////////////
 function pageUpdated(tabId, changeInfo, tab) {
+	console.log('page update')
 
 	if (tab.status === 'complete') {
 		getIntentionData().then(intentionData => {
@@ -200,12 +201,14 @@ function newTab(tab) {
 ////////////////
 // TODO: Need to revisit this whole thing. Bunch of hacks stacked on top of one another
 function tabChange(newFocusTab) {
-	getIntentionData().then(intentionData => {
-		if (newFocusTab.windowId !== intentionData.windowId) {
-			return
-		}
-		// get information about the new active tab. Use timeout because of a race condition?
-		setTimeout(function() {
+
+	// get information about the new active tab. Use timeout because of a race condition?
+	setTimeout(function() {
+		getIntentionData().then(intentionData => {
+			if (newFocusTab.windowId !== intentionData.windowId) {
+				return
+			}
+
 			chrome.tabs.get(newFocusTab.tabId, tab => {
 				// set the old tab as inactive
 				let previousTabIndex = intentionData.tabs.findIndex(tab => tab.focus === true)
@@ -236,8 +239,8 @@ function tabChange(newFocusTab) {
 
 				updateIntentionData(intentionData).then(response => {})
 			})
-		}, 50)
-	})
+		})
+	}, 50)
 }
 
 
@@ -247,17 +250,21 @@ function tabChange(newFocusTab) {
 // on tab close set associated tab container as inactive
 //////////////////
 function closeTab(tabId, removeInfo) {
+	console.log('close tab')
+
 	getIntentionData().then(intentionData => {
 		if (removeInfo.windowId === intentionData.windowId) {
 			let removedTabIndex = intentionData.tabs.findIndex(tab => tab.currentId === tabId)
 			let lastPageIndex = intentionData.tabs[removedTabIndex].history.length - 1
+
 			intentionData.tabs[removedTabIndex].history[lastPageIndex].end = Date.now()
 			intentionData.tabs[removedTabIndex].available = true
+
+			updateIntentionData(intentionData).then(response => {
+
+			})
+
 		}
-
-		updateIntentionData(intentionData).then(response => {
-
-		})
 	})
 }
 
