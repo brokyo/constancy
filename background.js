@@ -348,7 +348,7 @@ function updateIntentionData(intentionData) {
 		chrome.storage.local.set({
 			'intention': intentionData
 		}, _ => {
-			// console.log('set:', intentionData)
+			console.log('set:', intentionData)
 			chrome.storage.local.get(['intention'], data => {
 				resolve(data.intention)
 			})

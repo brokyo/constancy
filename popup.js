@@ -1,9 +1,30 @@
+var reflectContainer = document.getElementById('reflect')
+var startContainer = document.getElementById('start')
+var endContainer = document.getElementById('end')
+
+
+function checkState() {
+	console.log('hey!')
+	chrome.storage.local.get(['intention'], result => {
+		console.log(result.intention)
+		if (result.intention.active) {
+			reflectContainer.style.display = 'none'
+			startContainer.style.display = 'none'
+			endContainer.style.display = 'block'
+		} else {
+			startContainer.style.display = 'block'
+			endContainer.style.display = 'none'
+		}
+	})	
+}
+
 function startSession(event){
 	let intentionText = document.getElementById('intention-text').value
 	let intentionTime = document.getElementById('intention-time').value
 
 	chrome.runtime.sendMessage({control: 'startSession', text: intentionText, time: intentionTime}, response => {
-			window.close()
+			console.log(response)
+			// window.close()
 	});
 }
 
@@ -18,3 +39,5 @@ function endSession() {
 
 document.getElementById('start_session-button').addEventListener("click", startSession)
 document.getElementById('end_session-button').addEventListener("click", endSession)
+
+checkState()
