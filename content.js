@@ -122,7 +122,10 @@ function startP5() {
 			var intentionEnd = globalStorage.end
 			var canvasHeight = globalStorage.tabs.length * tabHeight
 			var canvasWidth = window.innerWidth
-			var tabHeight
+			var canvasBuffer = 10
+			var siteHeight = tabHeight * 0.7
+			var tabBuffer = tabHeight * 0.15
+
 
 			// draw browsing history
 			globalStorage.tabs.forEach((tab, tabIndex) => {
@@ -136,13 +139,9 @@ function startP5() {
 						siteEndTime = site.end
 					}
 
-					// draw visit history
-					let siteHeight = tabHeight * 0.7
-					let tabBuffer = tabHeight * 0.15
-
-					var x = p5.map(site.start, intentionStart, intentionEnd, 0, canvasWidth)
+					var x = p5.map(site.start, intentionStart, intentionEnd, canvasBuffer, canvasWidth - canvasBuffer)
 					var y = canvasHeight - (tabHeight * (tabIndex + 1)) + tabBuffer
-					var w = p5.map(siteEndTime, intentionStart, intentionEnd, 0, canvasWidth) - x
+					var w = p5.map(siteEndTime, intentionStart, intentionEnd, canvasBuffer, canvasWidth - canvasBuffer) - x
 					var h = siteHeight
 
 					p5.stroke('#cccccc')
@@ -166,9 +165,9 @@ function startP5() {
 							let periodHeight = tabHeight * 0.7
 							let periodBuffer = tabHeight * 0.15
 
-							var x = p5.map(period.start, intentionStart, intentionEnd, 0, canvasWidth)
+							var x = p5.map(period.start, intentionStart, intentionEnd, canvasBuffer, canvasWidth - canvasBuffer)
 							var y = canvasHeight - (tabHeight * (tabIndex + 1)) + periodBuffer
-							var w = p5.map(periodEndTime, intentionStart, intentionEnd, 0, canvasWidth) - x
+							var w = p5.map(periodEndTime, intentionStart, intentionEnd, canvasBuffer, canvasWidth - canvasBuffer) - x
 							var h = periodHeight
 
 							// console.log('tab:', tabIndex, 'site:', siteIndex, 'period:', periodIndex, 'y:', y, 'x:', x, 'w:', w)
@@ -192,13 +191,14 @@ function startP5() {
 					periodEndTime = period.end
 				}
 
-				var x = p5.map(period.start, intentionStart, intentionEnd, 0, canvasWidth)
+				console.log(canvasBuffer)
+				var x = p5.map(period.start, intentionStart, intentionEnd, canvasBuffer, canvasWidth - canvasBuffer)
 				var y = 0
-				var w = p5.map(periodEndTime, intentionStart, intentionEnd, 0, canvasWidth) - x
+				var w = p5.map(periodEndTime, intentionStart, intentionEnd, canvasBuffer, canvasWidth - canvasBuffer) - x
 				var h = canvasHeight
 
 				// console.log('lost focus period:', periodIndex, 'w:', w, 'h:', h)
-				let focusColor = 'rgba(30, 30, 30, 0.6)' 
+				let focusColor = 'rgba(30, 30, 30, 0.2)' 
 				p5.stroke(focusColor)
 				p5.fill(focusColor)
 				p5.rect(x, y, w, h)
