@@ -27,10 +27,9 @@ function startSession(event){
 }
 
 function endSession() {
-	console.log('popup - end session')
-
+	
 	chrome.runtime.sendMessage({control: 'endSession'}, response => {
-		console.log('end session')
+			window.close()
 	})
 }
 
