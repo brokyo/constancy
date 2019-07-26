@@ -78,7 +78,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				end: undefined
 			})
 
-			updateIntentionData(intentionData).then(response => {})
+			updateIntentionData('startSession', intentionData).then(response => {})
 		})
 
 		// Set ending alarm
@@ -105,8 +105,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // after a page change is complete end previous page session and create a new one
 //////////////////
 function pageUpdated(tabId, changeInfo, tab) {
-	console.log('page update')
-
 	if (tab.status === 'complete') {
 		getIntentionData().then(intentionData => {
 
@@ -119,7 +117,7 @@ function pageUpdated(tabId, changeInfo, tab) {
 
 			// check that there is a previous page
 			let previousPageExists = previousPageIndex > -1 ? true : false
-			if (previousPageExists) {
+			if (previousPageExists && !intentionData.tabs[tabIndex].history[previousPageIndex].end) {
 				// make sure that the page's url isn't the same [infinite scroll, refreshes, ads]
 				if (intentionData.tabs[tabIndex].history[previousPageIndex].url === tab.url) {return}
 
@@ -139,7 +137,7 @@ function pageUpdated(tabId, changeInfo, tab) {
 			})
 			intentionData.tabs[tabIndex].history.push(webpage)
 
-			updateIntentionData(intentionData)
+			updateIntentionData('pageUpdated', intentionData)
 		})
 	}
 }
@@ -190,7 +188,7 @@ function newTab(tab) {
 			intentionData.tabs.push(newTab)
 		}
 
-		updateIntentionData(intentionData)
+		updateIntentionData('newTab', intentionData)
 	})
 }
 
@@ -237,7 +235,7 @@ function tabChange(newFocusTab) {
 					})
 				}
 
-				updateIntentionData(intentionData).then(response => {})
+				updateIntentionData('tabChange', intentionData).then(response => {})
 			})
 		})
 	}, 50)
@@ -250,17 +248,20 @@ function tabChange(newFocusTab) {
 // on tab close set associated tab container as inactive
 //////////////////
 function closeTab(tabId, removeInfo) {
-	console.log('close tab')
-
 	getIntentionData().then(intentionData => {
 		if (removeInfo.windowId === intentionData.windowId) {
 			let removedTabIndex = intentionData.tabs.findIndex(tab => tab.currentId === tabId)
 			let lastPageIndex = intentionData.tabs[removedTabIndex].history.length - 1
+			let lastFocusIndex = intentionData.tabs[removedTabIndex].history[lastPageIndex].focusPeriods.length - 1
 
 			intentionData.tabs[removedTabIndex].history[lastPageIndex].end = Date.now()
+
+			if(!intentionData.tabs[removedTabIndex].history[lastPageIndex].focusPeriods[lastFocusIndex].end) {
+				intentionData.tabs[removedTabIndex].history[lastPageIndex].focusPeriods[lastFocusIndex].end = Date.now()
+			}
 			intentionData.tabs[removedTabIndex].available = true
 
-			updateIntentionData(intentionData).then(response => {
+			updateIntentionData('closeTab', intentionData).then(response => {
 
 			})
 
@@ -288,7 +289,7 @@ function focusChange(windowId) {
 			intentionData.focusLost[focusIndex].end = Date.now()
 		}
 
-		updateIntentionData(intentionData)
+		// updateIntentionData('focusChange', intentionData)
 	})
 }
 
@@ -350,12 +351,12 @@ function getIntentionData() {
 	})
 }
 
-function updateIntentionData(intentionData) {
+function updateIntentionData(method, intentionData) {
 	return new Promise((resolve, reject) => {
 		chrome.storage.local.set({
 			'intention': intentionData
 		}, _ => {
-			console.log('set:', intentionData)
+			console.log(method, 'set:', intentionData.tabs[1].history)
 			chrome.storage.local.get(['intention'], data => {
 				resolve(data.intention)
 			})
@@ -372,7 +373,7 @@ function createEndAlarm(endTime) {
 function endSession() {
 	getIntentionData().then(data => {
 		data.active = false
-		updateIntentionData(data)
+		updateIntentionData('endSession', data)
 
 		chrome.tabs.query({}, tabs => {
 			tabs.forEach(tab => {

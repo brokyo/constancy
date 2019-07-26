@@ -43,7 +43,7 @@ intention.style.borderRadius = '0'
 intention.style.backgroundColor = '#FFFFFF'
 intention.style["z-index"] = "9999999999"
 intention.style["text-align"] = "center"
-intention.style.webkitBoxShadow = '0px -2px 7px -2px rgba(0,0,0,0.38)'
+intention.style.webkitBoxShadow = '0 0 1px rgba(0,0,0,0.4)'
 
 statement.style["font-size"] = "16px"
 statement.style["font-family"] = "inherit"
@@ -154,6 +154,9 @@ function startP5() {
 					if (site.focusPeriods.length > 0) {
 						site.focusPeriods.forEach((period, periodIndex) => {
 
+							if(tabIndex === 1) {
+								console.log('tab:', tabIndex, 'site:', siteIndex, 'period:', periodIndex, period)
+							}
 							// create period end time if it doesn't exist 
 							let periodEndTime
 							if (!period.end) {
@@ -171,7 +174,6 @@ function startP5() {
 							var h = periodHeight
 
 							// console.log('tab:', tabIndex, 'site:', siteIndex, 'period:', periodIndex, 'y:', y, 'x:', x, 'w:', w)
-							p5.stroke('#BDB8EC')
 							p5.fill('#BDB8EC')
 							p5.rect(x, y, w, h, 20)
 
@@ -191,7 +193,6 @@ function startP5() {
 					periodEndTime = period.end
 				}
 
-				console.log(canvasBuffer)
 				var x = p5.map(period.start, intentionStart, intentionEnd, canvasBuffer, canvasWidth - canvasBuffer)
 				var y = 0
 				var w = p5.map(periodEndTime, intentionStart, intentionEnd, canvasBuffer, canvasWidth - canvasBuffer) - x
@@ -215,6 +216,8 @@ function startP5() {
 }
 
 function updateP5() {
+	// Have to call windowResized() to deal with new tabs
+	globalP5.windowResized()
 	globalP5.redraw()
 }
 
