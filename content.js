@@ -74,14 +74,16 @@ var globalP5, globalStorage
 
 // Attach bar to DOM
 function addBar() {
-	statementText = globalStorage.intention
-	statementTextNode = document.createTextNode('I intend to ' + statementText)
-	statement.append(statementTextNode)
+	updateIntentionData().then(_ => {
+		statementText = globalStorage.intention
+		statementTextNode = document.createTextNode('I intend to ' + statementText)
+		statement.append(statementTextNode)
 
-	// Handle DOM stuff
-	body.append(intention)
-	document.getElementById('hide').addEventListener("click", hideChart)
-	document.getElementById('show').addEventListener("click", showChart)
+		// Handle DOM stuff
+		body.append(intention)
+		document.getElementById('hide').addEventListener("click", hideChart)
+		document.getElementById('show').addEventListener("click", showChart)
+	})
 }
 
 // Set up Chrome background.js message listeners
