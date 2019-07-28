@@ -16,14 +16,14 @@ intention.append(canvasNode)
 // Create hide button
 var hide = document.createElement('span')
 hide.setAttribute("id", "hide")
-hideText = '--'
+hideText = '\u25BC'
 hideTextNode = document.createTextNode(hideText)
 hide.append(hideTextNode)
 intention.append(hide)
 
 var show = document.createElement('show')
 show.setAttribute("id", "show")
-showText = '+'
+showText = '\u25B2'
 showTextNode = document.createTextNode(showText)
 show.append(showTextNode)
 intention.append(show)
@@ -52,21 +52,22 @@ statement.style.padding = "5px 0px"
 
 hide.style.display = "block"
 hide.style.position = "absolute"
-hide.style.top = "-1px"
-hide.style.right = "7px"
-hide.style["font-size"] = "16px"
+hide.style.top = "1px"
+hide.style.right = "6px"
+hide.style["font-size"] = "10px"
 hide.style["font-weight"] = "900"
 hide.style.cursor = "pointer"
 
 show.style.display = 'none'
 show.style.position = "absolute"
-show.style.top = "-1px"
-show.style.right = "7px"
-show.style["font-size"] = "16px"
+show.style.top = "1px"
+show.style.right = "6px"
+show.style["font-size"] = "10px"
 show.style["font-weight"] = "900"
 show.style.cursor = "pointer"
 
 canvasNode.style.padding = "0px 0px 6px 0px"
+canvasNode.style.all = 'unset'
 
 // global p5 object | allows other methods to run p5 operations
 var globalP5, globalStorage
