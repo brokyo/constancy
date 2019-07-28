@@ -106,6 +106,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 //////////////////
 function pageUpdated(tabId, changeInfo, tab) {
 	if (tab.status === 'complete') {
+		if(tab.url === 'chrome://newtab/') { return }
+
 		getIntentionData().then(intentionData => {
 
 			// Ignore if it's not in an active window
@@ -174,19 +176,21 @@ function newTab(tab) {
 				history: []
 			}
 
-			// TODO: Maybe don't do this if the page is 'chrome://newtab' ?
-			// create page object and push it to container's history
-				let webpage = {
-					title: tab.title,
-					url: tab.url,
-					start: Date.now(),
-					end: undefined,
-					focusPeriods: []
-				}
-				newTab.history.push(webpage)
-
 			intentionData.tabs.push(newTab)
+			availableTabIndex = intentionData.tabs.length - 1
 		}
+
+		// create page object and push it to container's history
+		let webpage = {
+			end: undefined,
+			focusPeriods: [],
+			start: Date.now(),
+			title: tab.title,
+			url: tab.url,
+		}
+
+		intentionData.tabs[availableTabIndex].history.push(webpage)
+
 
 		updateIntentionData('newTab', intentionData)
 	})
@@ -249,6 +253,7 @@ function tabChange(newFocusTab) {
 //////////////////
 function closeTab(tabId, removeInfo) {
 	getIntentionData().then(intentionData => {
+		// ensure the tab was closed in this window with the extension
 		if (removeInfo.windowId === intentionData.windowId) {
 			let removedTabIndex = intentionData.tabs.findIndex(tab => tab.currentId === tabId)
 			let lastPageIndex = intentionData.tabs[removedTabIndex].history.length - 1
@@ -356,7 +361,7 @@ function updateIntentionData(method, intentionData) {
 		chrome.storage.local.set({
 			'intention': intentionData
 		}, _ => {
-			console.log(method, 'set:', intentionData.tabs[1].history)
+			console.log(method, 'set:', intentionData.tabs)
 			chrome.storage.local.get(['intention'], data => {
 				resolve(data.intention)
 			})
