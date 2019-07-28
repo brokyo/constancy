@@ -154,9 +154,6 @@ function startP5() {
 					if (site.focusPeriods.length > 0) {
 						site.focusPeriods.forEach((period, periodIndex) => {
 
-							if(tabIndex === 1) {
-								console.log('tab:', tabIndex, 'site:', siteIndex, 'period:', periodIndex, period)
-							}
 							// create period end time if it doesn't exist 
 							let periodEndTime
 							if (!period.end) {
@@ -199,7 +196,7 @@ function startP5() {
 				var h = canvasHeight
 
 				// console.log('lost focus period:', periodIndex, 'w:', w, 'h:', h)
-				let focusColor = 'rgba(30, 30, 30, 0.3)' 
+				let focusColor = 'rgba(150, 150, 150, 0.4)' 
 				p5.stroke(focusColor)
 				p5.fill(focusColor)
 				p5.rect(x, y, w, h)

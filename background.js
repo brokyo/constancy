@@ -294,7 +294,7 @@ function focusChange(windowId) {
 			intentionData.focusLost[focusIndex].end = Date.now()
 		}
 
-		// updateIntentionData('focusChange', intentionData)
+		updateIntentionData('focusChange', intentionData)
 	})
 }
 
