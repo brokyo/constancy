@@ -5,7 +5,7 @@
       	body {
       		width: 400px;
       		height: 400px;
-          background: rebeccapurple;
+          background: white;
           z-index: 9999999;
       	}
 
@@ -18,18 +18,18 @@
         #intro {
           font-size: 18px;
           font-weight: 100;
-          color: white;
+          color: black;
           margin-bottom: 20px;
         }
         .prompt {
           font-size: 16px;
           font-weight: 100;
-          color: white;
+          color: black;
         }
         .response_unit {
           font-size: 16px;
           font-weight: 100;
-          color: white; 
+          color: black; 
         }
         #end_session-button {
           width: 80%;
@@ -37,7 +37,7 @@
           top: 50px;
         }
         textarea {
-          height: 100px;
+          height: 80px;
           resize: none;
           width: 50%;
           margin: 10px auto;
@@ -46,7 +46,7 @@
           text-align: center;
           font-weight: 200;
           font-size: 22px;
-          color: white;
+          color: black;
           background: none;
           border: none;
         }
@@ -69,25 +69,26 @@
       		display: block;
       	}
         button {
-            display: inline-block;
-            border: none;
-            padding: 1rem 2rem;
-            margin-top: 30px;
-            text-decoration: none;
-            background: hsla(270, 50%, 30%, 1);
-            color: #ffffff;
-            font-family: sans-serif;
-            font-size: 1rem;
-            cursor: pointer;
-            text-align: center;
-            transition: background 250ms ease-in-out, 
-                        transform 150ms ease;
-            -webkit-appearance: none;
-            -moz-appearance: none;
+          border: none;
+          padding: 1rem 2rem;
+          margin-top: 100px;
+          text-decoration: none;
+          background: white;
+          color: black;
+          font-family: sans-serif;
+          font-size: 1rem;
+          cursor: pointer;
+          text-align: center;
+          transition: background 250ms ease-in-out, transform 150ms ease;
+          -webkit-appearance: none;
+          width: 210px;
+          text-align: center;
+          border: 2px solid black;
+          -moz-appearance: none;
         }
         button:hover,
         button:focus {
-            background: hsla(270, 50%, 20%, 1);
+            background: hsl(309, 70%, 90%);
         }
         button:focus {
             outline: 1px solid black;
@@ -97,12 +98,11 @@
     <body>
       <div id="container">
         <div id="reflect">
-          <span id="intro">first, reflect</span>
         </div>
         <div id="start">
           <span class="prompt">I intend to...</span>
-          <textarea id="intention-text" placeholder="why are you choosing to access the world wide web"></textarea>
-          <span class="prompt">for</span>
+          <textarea id="intention-text" placeholder="what do you hope to accomplish while on the world wide web?"></textarea>
+          <span class="prompt">over</span>
           <input type="number" id="intention-time" placeholder="25" min="0" required="true"><span class="response_unit">minutes</span>
           <button id="start_session-button">begin</button>
         </div>

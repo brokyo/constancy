@@ -1,24 +1,24 @@
-{
+	{
 	"name": "constancy",
 	"version": "0.5",
-	"description": "the internet moves at the speed of light / you don't have to",
-  "browser_action": {
-    "default_popup": "popup.html"
-  },
+	"description": "\"the internet moves at the speed of light / you don't have to\"",
+	"browser_action": {
+	"default_popup": "popup.html"
+	},
 	"background": {
 		"scripts": [
 			"background.js"
 		]
 	},
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js", "p5.min.js"],
-      "run_at": "document_end"
-    }
-  ],
+	"content_scripts": [
+	{
+	  "matches": ["<all_urls>"],
+	  "js": ["content.js", "p5.min.js"],
+	  "run_at": "document_end"
+	}
+	],
 	"permissions": [
 		"tabs", "storage", "declarativeContent", "alarms"
 	],
 	"manifest_version": 2
-}
+	}
