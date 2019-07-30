@@ -79,7 +79,6 @@ show.style["font-size"] = "10px"
 show.style["font-weight"] = "900"
 show.style.cursor = "pointer"
 
-canvasNode.style.padding = "0px 0px 6px 0px"
 canvasNode.style.all = 'unset'
 
 // global p5 object | allows other methods to run p5 operations
