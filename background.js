@@ -88,14 +88,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	// End Session	
 	if (request.control === 'endSession') {
 		endSession()
-		// chrome.tabs.query({}, function(tabs) {
-		// 	tabs.forEach(tab => {
-		// 		console.log('end session on tab', tab.id)
-		// 		chrome.tabs.sendMessage(tab.id, {
-		// 			control: "endSession"
-		// 		}, async response => {})
-		// 	})
-		// });
+	}
+
+	if (request.control === 'activeWindowCheck') {
+		getIntentionData().then(intention => {
+			if(!intention.active) {return}
+				
+			let isActiveWindow = intention.windowId === sender.tab.windowId ? true: false 
+			chrome.tabs.sendMessage(sender.tab.id, {
+					control: "isActiveWindow",
+					isActive: isActiveWindow
+				}, async response => {})
+		})
 	}
 });
 

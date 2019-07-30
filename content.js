@@ -1,3 +1,16 @@
+chrome.runtime.sendMessage({'control': 'activeWindowCheck'})
+
+// only show intention bar if the window is the one the extension is runing on
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	if(request.control === 'isActiveWindow') {
+		if(request.isActive) {
+			updateIntentionData().then(_ => {
+				startExtension()
+			})					
+		}
+	}
+});
+
 // create references to html elements
 var page = document.documentElement
 var body = document.getElementsByTagName('body')[0]
@@ -52,7 +65,7 @@ statement.style.padding = "5px 0px"
 
 hide.style.display = "block"
 hide.style.position = "absolute"
-hide.style.top = "1px"
+hide.style.top = "4px"
 hide.style.right = "6px"
 hide.style["font-size"] = "10px"
 hide.style["font-weight"] = "900"
@@ -60,7 +73,7 @@ hide.style.cursor = "pointer"
 
 show.style.display = 'none'
 show.style.position = "absolute"
-show.style.top = "1px"
+show.style.top = "4px"
 show.style.right = "6px"
 show.style["font-size"] = "10px"
 show.style["font-weight"] = "900"
@@ -75,6 +88,9 @@ var globalP5, globalStorage
 // Attach bar to DOM
 function addBar() {
 	updateIntentionData().then(_ => {
+		// Don't show the bar in
+		// if(globalStorage.windowId !== ) {return}
+
 		statementText = globalStorage.intention
 		statementTextNode = document.createTextNode('I intend to ' + statementText)
 		statement.append(statementTextNode)
@@ -243,7 +259,11 @@ function updateIntentionData() {
 function startExtension() {
 		addBar()
 		addEventListeners()
-		startP5()
+		// TODO: this is a horrible way to deal with a race condition. Maybe have a callback on the global data load
+		// TODO: honestly should look at that whole localStorage system again :/
+		setTimeout(_ => {
+			startP5()
+		}, 100)
 }
 
 // Extension teardown
@@ -276,9 +296,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 })
 
-// check if extension is active and kickoff
-updateIntentionData().then(_ => {
-	if(globalStorage.active) {
-		startExtension()
-	}
-})
+// // check if extension is active and kickoff
+// updateIntentionData().then(_ => {
+// 	if(globalStorage.active) {
+// 		startExtension()
+// 	}
+// })
