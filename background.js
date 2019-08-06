@@ -309,21 +309,25 @@ function focusChange(windowId) {
 // update active content display when underlying data changes
 ///////////////////
 function dataUpdated(changes, area) {
-	let newData = changes.intention.newValue
+	// only do this when the active session data changes
+	if(changes.hasOwnProperty("intention")){
+		let newData = changes.intention.newValue
 
-	chrome.tabs.query({
-		active: true
-	}, function(tabs) {
-		tabs.forEach(tab => {
-			let activeWindow = newData.windowId
-			if (tab.windowId === activeWindow) {
-				chrome.tabs.sendMessage(tab.id, {
-					control: "updateData",
-					data: newData
-				}, async response => {})
-			}
+		chrome.tabs.query({
+			active: true
+		}, function(tabs) {
+			tabs.forEach(tab => {
+				let activeWindow = newData.windowId
+				if (tab.windowId === activeWindow) {
+					chrome.tabs.sendMessage(tab.id, {
+						control: "updateData",
+						data: newData
+					}, async response => {})
+				}
+			})
 		})
-	})
+	} 
+
 }
 
 
@@ -396,7 +400,6 @@ function endSession() {
 
 	getIntentionData().then(data => {
 		data.active = false
-		console.log(data)
 		updateIntentionData('endSession', data)
 
 		getHistory().then(history => {
