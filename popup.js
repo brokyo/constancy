@@ -5,8 +5,8 @@ var endContainer = document.getElementById('end')
 
 function checkState() {
 	chrome.storage.local.get(['intention'], result => {
-
-		if (result.intention.active) {
+		
+		if (result.intention && result.intention.active) {
 			reflectContainer.style.display = 'none'
 			startContainer.style.display = 'none'
 			endContainer.style.display = 'block'

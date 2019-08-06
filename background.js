@@ -365,7 +365,7 @@ function updateIntentionData(method, intentionData) {
 		chrome.storage.local.set({
 			'intention': intentionData
 		}, _ => {
-			console.log(method, 'set:', intentionData.tabs)
+			// console.log(method, 'set:', intentionData.tabs)
 			chrome.storage.local.get(['intention'], data => {
 				resolve(data.intention)
 			})
@@ -379,10 +379,31 @@ function createEndAlarm(endTime) {
 	})
 }
 
+function getHistory() {
+	return new Promise((resolve, reject) => {
+		chrome.storage.local.get(['intentionHistory'], chromeStorage => {
+			if (chromeStorage.intentionHistory) {
+				resolve(chromeStorage.intentionHistory)
+			} else {
+				reject(chromeStorage)
+			}
+		})		
+	})
+}
+
+
 function endSession() {
+
 	getIntentionData().then(data => {
 		data.active = false
+		console.log(data)
 		updateIntentionData('endSession', data)
+
+		getHistory().then(history => {
+			history.push(data)
+			chrome.storage.local.set({'intentionHistory': history})
+		})
+
 
 		chrome.tabs.query({}, tabs => {
 			tabs.forEach(tab => {
@@ -416,4 +437,16 @@ chrome.alarms.onAlarm.addListener(alarm => {
 		break
 	}
 
+})
+
+chrome.runtime.onInstalled.addListener(_ => {
+	// create intentionHistory store if it doesn't already exist
+	chrome.storage.local.get(['intentionHistory'], chromeStorage => {
+		let history = chromeStorage.intentionHistory
+
+		if (!Array.isArray(history)) {
+			console.log('test passed')
+			chrome.storage.local.set({'intentionHistory': new Array})
+		}
+	})
 })
